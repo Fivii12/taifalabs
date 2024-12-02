@@ -1,3 +1,4 @@
-;a0;a1;a2;a3
-x1;a2/y1;a2/y2;a1/y3;a2/y3
-x2;a3/y1;a3/y2;a3/y1;a3/y2
+;s0;s1;s2;s3
+x1;s3/y1;s0/y2;s2/y3;s0/y5
+x2;s1/y1;s2/y1;s0/y4;s3/y2
+x3;s0/y5;s1/y4;s3/y1;s1/y5
