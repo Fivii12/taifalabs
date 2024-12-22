@@ -236,15 +236,21 @@ def moore_to_mili(df, np_df):
     dot = Digraph(comment='Mealy Machine')
 
     # Добавляем состояния как узлы
+    col_names = df.columns[1:].to_list()
+    print(df.columns[1:])
     states = df.iloc[0].values[1:].tolist()
-    for state in states:
+    print(states, '123213')
+    for state in col_names:
         print(state)
         dot.node(state)
 
     # Добавляем переходы как ребра
     for i, row in df.iterrows():
         current_state = row.iloc[i+1]  # Текущее состояние — первый элемент строки
-        print(i, row.values)
+        transitions = row.values[1:].tolist()
+        print(i, transitions)
+        for j, state in enumerate(col_names):
+            dot.edge(state, transitions[j].split('/')[0], label = row.values[0] + '/' + transitions[j].split('/')[1])
 
     # Сохраняем граф в файл
     dot.render('mili_graph', format='png', cleanup=True)
