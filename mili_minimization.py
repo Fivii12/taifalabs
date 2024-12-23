@@ -1,4 +1,6 @@
 from bisect import insort
+from fnmatch import translate
+from glob import escape
 from inspect import stack
 from os.path import splitext
 
@@ -281,33 +283,46 @@ def make_group_transitions_moore(groups, transtions_grouped):
     return final_aray
 
 
-def make_final_graph(new_grouped_indices, state_names, input_signals, transitions_grouped):
+def make_moore_dataframe_and_graph(new_grouped_indices, transitions, rows_names):
+    # Создаем список для хранения строк
     dot = Digraph(comment='Final State Machine')
-    q_arr = []
+
+    rows = []
+    col_arr = []
+    print(transitions[0])
     # Создаем узлы для групп
     for group_id, states in enumerate(new_grouped_indices):
-        label = f'q{group_id}'
-        q_arr.append(group_id)
-        dot.node(f'g{group_id}', label=label, shape='ellipse')
+        col_arr.append(f'q{group_id}')
 
-    # Создаем переходы
+    alltransitions = []
+    for i, group in enumerate(transitions):
+        for transition in group:
+            unique_transitions = []
+            if transition not in unique_transitions:
+                unique_transitions.append(transition)
 
-    for group_id, group_states in enumerate(new_grouped_indices):
-        for state in group_states:
-            for input_index, target_state_name in enumerate(transitions_grouped[state]):
-                # Ищем группу, к которой принадлежит целевое состояние
-                for target_group_id, target_group_states in enumerate(new_grouped_indices):
-                    if any(state_names[target][0] == target_state_name for target in target_group_states):
-                        dot.edge(
-                            f'g{group_id}',
-                            f'g{target_group_id}',
-                            label=input_signals[input_index]
-                        )
-                        break
+        alltransitions.append(unique_transitions)
+    print(alltransitions)
 
-    # Сохраняем граф
+    print(col_arr)
+    for group_id, states in enumerate(alltransitions):
+        print(states)
+        for group_transition_id, group_transition in enumerate(states):
+            row = []
+            for transition in group_transition:
+                row.append(f'q{transition}')
+            rows.append(row)
+    for id, group in enumerate(rows):
+        for j, elem in enumerate(group):
+            dot.edge(col_arr[id], elem, label = f'{rows_names[j]}')
+    transposed_rows = list(zip(*rows))
+    transposed_rows = [list(col) for col in transposed_rows]
+    print(transposed_rows, col_arr)
+    #Создаем DataFrame
     dot.render('final_state_machine', format='png', cleanup=True)
-    print("Граф сохранен как 'final_state_machine.png'")
+    df = pd.DataFrame(transposed_rows, columns=col_arr)
+
+    return df
 
 
 def moore_minimization():
@@ -342,7 +357,9 @@ def moore_minimization():
         grouped_indices = new_grouped_indices
     print(new_grouped_indices)
     column_names = get_column_names(grouped_indices)
-    make_final_graph(new_grouped_indices, col_names, rows_names, transitions_grouped)
+    moore_df = make_moore_dataframe_and_graph(new_grouped_indices, mid_array, rows_names)
+    print(moore_df)
+    moore_df.to_csv('moore_output.csv', sep=';')
 
 mili_minimization()
 moore_minimization()
