@@ -1,4 +1,5 @@
 from bisect import insort
+from inspect import stack
 from os.path import splitext
 
 import pandas as pd
@@ -70,13 +71,13 @@ def get_group_for_state(state, grouped_indices):
         if state in grouped_indices[i]:
             return i
 
-def make_group_transitions(groups, transtions_grouped):
+def make_group_transitions(groups, transtions_grouped, start_number):
     final_aray = []
     for i in range(len(groups)): # по объединенным по y
         second_aray = []
         for j, state in enumerate(groups[i]): # по индексу(состоянию)
             aray = []
-            for elem in transtions_grouped[state -1 ]: # по переходу
+            for elem in transtions_grouped[state - start_number ]: # по переходу start_number для того чтобы учесть 0 1 2 3 начало кароч
 
                 a = get_group_for_state(int(elem), groups)
                 aray.append(a)
@@ -156,6 +157,15 @@ def make_graph(column_names, rows_names, splitted_arr):
 
     dot.render('mili_graph', format='png', cleanup=True)
 
+def find_start_number(arr):
+    min_number = 100000000000000000
+    for i, array in enumerate(arr):
+        for j, elem in enumerate(array):
+            if elem < min_number:
+                min_number = elem
+    return min_number
+
+
 def mili_minimization():
     filename = 'mili_input.csv'
 
@@ -167,12 +177,14 @@ def mili_minimization():
     print('transitions_grouped', transitions_grouped)
     print('secarr_grouped', secarr_grouped)
     groups = make_new_group_ygrek(yarray_grouped)
-    print(groups)
+    print('groups', groups)
     grouped_indices = list(groups.values())
     print('grouped_indices', grouped_indices)
+    start_number = find_start_number(grouped_indices)
+    print(start_number)
 
     while True:
-        mid_array = make_group_transitions(grouped_indices, transitions_grouped)
+        mid_array = make_group_transitions(grouped_indices, transitions_grouped, start_number)
         print('mid_array', mid_array)
 
         mid_groups = make_new_group_indeces(mid_array, grouped_indices)
@@ -271,13 +283,15 @@ def make_group_transitions_moore(groups, transtions_grouped):
 
 def make_final_graph(new_grouped_indices, state_names, input_signals, transitions_grouped):
     dot = Digraph(comment='Final State Machine')
-
+    q_arr = []
     # Создаем узлы для групп
     for group_id, states in enumerate(new_grouped_indices):
-        label = f'Group {group_id}\n' + ", ".join([state_names[state][0] for state in states])
+        label = f'q{group_id}'
+        q_arr.append(group_id)
         dot.node(f'g{group_id}', label=label, shape='ellipse')
 
     # Создаем переходы
+
     for group_id, group_states in enumerate(new_grouped_indices):
         for state in group_states:
             for input_index, target_state_name in enumerate(transitions_grouped[state]):
