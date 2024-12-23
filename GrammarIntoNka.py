@@ -136,7 +136,7 @@ print(dka)
 
 df = grammar_to_table(dka)
 print(df)
-save_path = 'NKA.csv'
-save_table(df, save_path)
+dka_save_path = 'dka.csv'
+save_table(df, dka_save_path)
 
 make_final_graph(dka)
