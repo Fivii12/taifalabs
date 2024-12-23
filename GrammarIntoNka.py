@@ -123,14 +123,14 @@ def nka_to_dka(grammar):
     return dka
 
 def make_final_graph(dka):
-    dot = Digraph(comment='Final State Machine')
+    dot = Digraph(comment='dka')
     for symbol, transitions in dka.items():
         dot.node(symbol)
     for symbol, transitions in dka.items():
         for transition, state in transitions.items():
             dot.edge(symbol, state, label=transition)
-    dot.render('final_state_machine', format='png', cleanup=True)
-    print("Граф сохранен как 'final_state_machine.png'")
+    dot.render('dka', format='png', cleanup=True)
+    print("Граф сохранен как 'dka'")
 dka = nka_to_dka(grammar)
 print(dka)
 
