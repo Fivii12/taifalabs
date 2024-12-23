@@ -1,17 +1,15 @@
 from idlelib.configdialog import tracers
 from idlelib.pyparse import trans
 import pandas as pd
-
 from graphviz import Digraph
 
-is_right = False
+is_left = False
 
 def parse_grammar(file_path):
     grammar = {}
-    inner_transition = {}
     file = open(file_path)
     grammar['H'] = {}
-    global is_right
+    global is_left
     for line in file:
         line = line.strip()
         print(line)
@@ -29,7 +27,7 @@ def parse_grammar(file_path):
                     symbol = r.strip()[-1]
                     transition = r.strip()[0:3]
 
-                    is_right = True
+                    is_left = True
                     print(symbol, transition)
                 else:
                     symbol = r.strip()[0]
@@ -37,13 +35,13 @@ def parse_grammar(file_path):
 
             transition = transition.strip('<>')
 
-            if not is_right: # левосторонняя
+            if not is_left: # правостороняя
                 if left not in grammar: # если нет ключа делаем
                     grammar[left] = {}
                 if symbol not in grammar[left]: # если нет переходов делаем
                     grammar[left][symbol] = []
                 grammar[left][symbol].append(transition)
-            else: # правосторонняя
+            else: # левостороняя
                 if transition not in grammar: # если нет ключа делаем
                     grammar[transition] = {}
                 if symbol not in grammar[transition]: # если нет переходов делаем
@@ -72,7 +70,7 @@ def grammar_to_table(grammar):
 
 def save_table(df, path):
     df.to_csv(path, sep=";")
-path = 'grammar_test_lesson.csv'
+path = 'test_input.csv'
 grammar = parse_grammar(path)
 print(grammar)
 df = grammar_to_table(grammar)
@@ -84,7 +82,8 @@ def nka_to_dka(grammar):
     stack = []
     dka = {}
     processed = set()
-    if is_right:
+    global is_left
+    if is_left:
         stack.append('H')
     else:
         stack.append('S')
@@ -133,4 +132,10 @@ def make_final_graph(dka):
     print("Граф сохранен как 'final_state_machine.png'")
 dka = nka_to_dka(grammar)
 print(dka)
+
+df = grammar_to_table(dka)
+print(df)
+save_path = 'NKA.csv'
+save_table(df, save_path)
+
 make_final_graph(dka)
