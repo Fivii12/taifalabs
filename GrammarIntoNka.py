@@ -126,9 +126,11 @@ def make_final_graph(dka):
     dot = Digraph(comment='dka')
     for symbol, transitions in dka.items():
         dot.node(symbol)
+
     for symbol, transitions in dka.items():
         for transition, state in transitions.items():
             dot.edge(symbol, state, label=transition)
+
     dot.render('dka', format='png', cleanup=True)
     print("Граф сохранен как 'dka'")
 dka = nka_to_dka(grammar)
