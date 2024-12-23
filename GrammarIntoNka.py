@@ -53,7 +53,7 @@ def parse_grammar(file_path):
 def grammar_to_table(grammar):
     terminals = sorted(set(symbol for transitions in grammar.values() for symbol in transitions.keys())) #терминалы
     nonterminals = sorted(grammar.keys()) # нетерминалы
-
+    print("(terminals, nonterminals)",terminals, nonterminals)
     table = []
     for nonterminal in nonterminals:
         row_data = []
@@ -70,7 +70,7 @@ def grammar_to_table(grammar):
 
 def save_table(df, path):
     df.to_csv(path, sep=";")
-path = 'test_input.csv'
+path = 'grammar_input.csv'
 grammar = parse_grammar(path)
 print(grammar)
 df = grammar_to_table(grammar)
@@ -106,9 +106,10 @@ def nka_to_dka(grammar):
                 # переходы для символа
                 transitions_by_symbol[symbol].extend(next_states)
 
-        print(f"transitions_by_symbol: {transitions_by_symbol}")
+        print(f"transitions_by_terminal: {transitions_by_symbol}")
 
         for symbol, transitions in transitions_by_symbol.items():
+            print(f"transitions: {symbol, transitions}")
             #соединяем для передачи
             merged_state = ''.join(sorted(set(''.join(transition) for transition in transitions)))
             if current_state not in dka:
