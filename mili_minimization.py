@@ -268,13 +268,13 @@ def get_transition_moore(arr):
 
     return array
 
-def make_group_transitions_moore(groups, transtions_grouped):
+def make_group_transitions_moore(groups, transtions_grouped, start_number):
     final_aray = []
     for i in range(len(groups)): # по объединенным по y
         second_aray = []
         for j, state in enumerate(groups[i]): # по индексу(состоянию)
             aray = []
-            for elem in transtions_grouped[state]: # по переходу
+            for elem in transtions_grouped[state - start_number]: # по переходу
 
                 a = get_group_for_state(int(elem), groups)
                 aray.append(a)
@@ -283,16 +283,24 @@ def make_group_transitions_moore(groups, transtions_grouped):
     return final_aray
 
 
-def make_moore_dataframe_and_graph(new_grouped_indices, transitions, rows_names):
+def make_moore_dataframe_and_graph(new_grouped_indices, transitions, rows_names, yarray):
     # Создаем список для хранения строк
     dot = Digraph(comment='Final State Machine')
 
     rows = []
     col_arr = []
     print(transitions[0])
+    yarr = []
     # Создаем узлы для групп
     for group_id, states in enumerate(new_grouped_indices):
         col_arr.append(f'q{group_id}')
+        if states[0] in yarray:
+            yarr.append(states[0])
+        for j, elem in enumerate(yarray):
+            if states[0] == j:
+                yarr.append(elem)
+
+    print(yarr)
 
     alltransitions = []
     for i, group in enumerate(transitions):
@@ -317,11 +325,16 @@ def make_moore_dataframe_and_graph(new_grouped_indices, transitions, rows_names)
             dot.edge(col_arr[id], elem, label = f'{rows_names[j]}')
     transposed_rows = list(zip(*rows))
     transposed_rows = [list(col) for col in transposed_rows]
-    print(transposed_rows, col_arr)
+    print(transposed_rows)
+    print(yarr)
+    print(col_arr)
+
     #Создаем DataFrame
     dot.render('final_state_machine', format='png', cleanup=True)
-    df = pd.DataFrame(transposed_rows, columns=col_arr)
 
+    df = pd.DataFrame(transposed_rows, columns=[yarr, col_arr])
+    print(df.columns)
+    # Сбрасываем индексацию, чтобы её не было
     return df
 
 
@@ -339,11 +352,13 @@ def moore_minimization():
     grouped_indices = list(groups.values())
     print('grouped_indices', grouped_indices)
     print('yarray_grouped', ygreks)
+    start_number = find_start_number(grouped_indices)
+
     transitions_grouped= initmoore(arrays, col_len, rows_len)
     print('transitions_grouped',transitions_grouped)
 
     while True:
-        mid_array = make_group_transitions_moore(grouped_indices, transitions_grouped)
+        mid_array = make_group_transitions_moore(grouped_indices, transitions_grouped, start_number)
         print('mid_array', mid_array)
 
         mid_groups = make_new_group_indeces(mid_array, grouped_indices)
@@ -357,9 +372,8 @@ def moore_minimization():
         grouped_indices = new_grouped_indices
     print(new_grouped_indices)
     column_names = get_column_names(grouped_indices)
-    moore_df = make_moore_dataframe_and_graph(new_grouped_indices, mid_array, rows_names)
+    moore_df = make_moore_dataframe_and_graph(new_grouped_indices, mid_array, rows_names, ygreks)
     print(moore_df)
     moore_df.to_csv('moore_output.csv', sep=';')
 
-mili_minimization()
 moore_minimization()
