@@ -61,8 +61,8 @@ def visualize_graph(G):
 
 def main(file_path):
     header, transitions = read_file(file_path)
-    G = create_graph(header, transitions)
-    visualize_graph(G)
+    Graph = create_graph(header, transitions)
+    visualize_graph(Graph)
 
 
 if __name__ == "__main__":

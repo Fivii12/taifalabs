@@ -251,9 +251,9 @@ def main():
     dfa_data = nka_to_dka(nfa_table, epsilon_closures)
 
     dfa_table = dfa_data[0]
-    ordered_states = dfa_data[1]
+    ordered_states_t = dfa_data[1]
 
-    write_to_file_dfa(output_file, ordered_symbols, dfa_table, ordered_states)
+    write_to_file_dfa(output_file, ordered_symbols, dfa_table, ordered_states_t)
 
 
 if __name__ == "__main__":
