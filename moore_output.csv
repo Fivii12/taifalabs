@@ -1,4 +1,4 @@
-;u1;u1;u1;u1;u2;u2
-;q0;q1;q2;q3;q4;q5
-0;q5;q2;q3;qNone;q5;q2
-1;q3;qNone;q1;q4;q3;qNone
+;u1;u1;u2
+;q0;q1;q2
+0;q2;q1;q2
+1;q1;q0;q1

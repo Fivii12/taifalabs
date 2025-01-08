@@ -161,10 +161,14 @@ def make_graph(column_names, rows_names, splitted_arr):
 
 def find_start_number(arr):
     min_number = 100000000000000000
+    finalelem = ''
     for i, array in enumerate(arr):
         for j, elem in enumerate(array):
-            if elem < min_number:
-                min_number = elem
+            finalelem = elem
+            if len(elem) > 1:
+                finalelem = int(elem[1])
+            if finalelem < min_number:
+                min_number = finalelem
     return min_number
 
 
@@ -274,9 +278,9 @@ def make_group_transitions_moore(groups, transtions_grouped, start_number):
         second_aray = []
         for j, state in enumerate(groups[i]): # по индексу(состоянию)
             aray = []
-            for elem in transtions_grouped[state - start_number]: # по переходу
+            for elem in transtions_grouped[state]: # по переходу
 
-                a = get_group_for_state(int(elem), groups)
+                a = get_group_for_state(int(str(int(elem) - start_number)), groups)
                 aray.append(a)
             second_aray.append(aray)
         final_aray.append(second_aray)
@@ -352,7 +356,7 @@ def moore_minimization():
     grouped_indices = list(groups.values())
     print('grouped_indices', grouped_indices)
     print('yarray_grouped', ygreks)
-    start_number = find_start_number(grouped_indices)
+    start_number = find_start_number(col_names)
 
     transitions_grouped= initmoore(arrays, col_len, rows_len)
     print('transitions_grouped',transitions_grouped)
