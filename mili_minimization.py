@@ -161,12 +161,13 @@ def make_graph(column_names, rows_names, splitted_arr):
 
 def find_start_number(arr):
     min_number = 100000000000000000
-    finalelem = ''
     for i, array in enumerate(arr):
         for j, elem in enumerate(array):
-            finalelem = elem
-            if len(elem) > 1:
+            finalelem = str(elem)
+            if len(finalelem) > 1:
                 finalelem = int(elem[1])
+            else:
+                finalelem = int(elem)
             if finalelem < min_number:
                 min_number = finalelem
     return min_number
@@ -379,5 +380,5 @@ def moore_minimization():
     moore_df = make_moore_dataframe_and_graph(new_grouped_indices, mid_array, rows_names, ygreks)
     print(moore_df)
     moore_df.to_csv('moore_output.csv', sep=';')
-
+mili_minimization()
 moore_minimization()
