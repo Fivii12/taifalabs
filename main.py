@@ -110,8 +110,8 @@ def mili_to_moore(df, np_df):
                 transitions_dict[col].append((next_state, output_symbol))
 
     print("переходы", transitions_dict)
-    state_names = list(ordered_states_sorted.keys())
-    qstates = [f"{state}/{ordered_states_sorted[state][1]}" for state in state_names]
+    state_names = list(ordered_states_sorted.keys()) # названия состояний
+    qstates = [f"{state}/{ordered_states_sorted[state][1]}" for state in state_names] # Создаем список состояний
 
     # Выводим новый список
 
@@ -124,19 +124,20 @@ def mili_to_moore(df, np_df):
 
     for state in qstates:
         qstate, yout = state.split('/')
-        moore[state] = []  # Инициализируем список переходов для текущего состояния
+        moore[state] = []  # инициализируем список переходов для текущего состояния
         moore_with_symbols[state] = []
         moore_counter = 0
         print(ordered_states_sorted[qstate][0], prev_state)
-        if ordered_states_sorted[qstate][0] == prev_state:
-            moore_step -= 1
-        # Начинаем с текущего смещения moore_step
+        if ordered_states_sorted[qstate][0] == prev_state: # если s-ки одинаковые то одни и те же состояния
+            moore_step -= 1 # вычитаем чтобы начать оттуда же
+        # начинаем с текущего смещения moore_step
         for i in range(moore_step, len(keys)):
-            key = keys[i]  # Берем ключ с учетом смещения
-            value = transitions_dict[key]  # Получаем значения переходов
+            key = keys[i]  # берем ключ с учетом смещения
+            value = transitions_dict[key]  # получаем значения переходов для s-ок
 
-            # Проходим по всем состояниям и их переходам
+            # проходим по всем состояниям автомата Мура
             for qkey, qvalue in ordered_states_sorted.items():
+                # проверяем переходы для текущего входного символа
                 for j in range(len(value)):
                     if qvalue == value[j]:
                         moore_counter += 1
@@ -144,7 +145,7 @@ def mili_to_moore(df, np_df):
                         moore_with_symbols[state].append((qkey, j))
 
 
-            # Когда нашли два перехода, увеличиваем сдвиг на 1 и выходим из цикла
+            # когда нашли все переходы, увеличиваем сдвиг на 1 и выходим из цикла
             if moore_counter == np_df.shape[0]:
                 prev_state = key
                 moore_step = i + 1  # Сохраняем сдвиг для следующего состояния
@@ -195,9 +196,9 @@ def mili_to_moore(df, np_df):
     # Преобразуем в DataFrame и сохраняем
     moore_df = pd.DataFrame(data)
     print(moore_df)
-    moore_df.to_csv('moore.csv', sep=';', header=False, index=False)
+    moore_df.to_csv('moore_from_mili.csv', sep=';', header=False, index=False)
 
-    print("Автомат Мура сохранен в файл moore_machine_output.csv")
+    print("Автомат Мура сохранен в файл moore_from_mili.csv")
 
 file_path = 'data.csv'
 df, np_df = read_csv(file_path)
