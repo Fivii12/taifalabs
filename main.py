@@ -183,47 +183,7 @@ def nfa_to_dfa(ordered_symbols, nfa_table, epsilon_closures):
     return [dfa_table, ordered_states]
 
 
-def nka_to_dka(grammar, epsilon_closures):
-    stack = []
-    dka = {}
-    processed = set()
-    stack.append('0')
-    f = 0
-    while stack:
-        f += 1
-        print(f, f'current state: {stack}')
 
-        current_state = stack.pop()
-        transitions_by_symbol = {}
-        for state in current_state:
-            if int(state) not in grammar:
-                continue
-            state = int(state)
-            # символ и переход для состояния
-            for symbol, next_states in grammar[state].items():
-                print(symbol, next_states)
-                if symbol not in transitions_by_symbol:
-                    transitions_by_symbol[symbol] = []
-                # переходы для символа
-                for next_state in grammar[current_state][symbol]:
-                    transitions_by_symbol[symbol].extend(epsilon_closures[next_state])
-                transitions_by_symbol[symbol].extend(next_states)
-
-        print(f"transitions_by_terminal: {transitions_by_symbol}")
-
-        for symbol, transitions in transitions_by_symbol.items():
-            print(f"transitions: {symbol, transitions}")
-            #соединяем для передачи
-            merged_state = ''.join(sorted(set(''.join(transition) for transition in transitions)))
-            if current_state not in dka:
-                dka[current_state] = {}
-            dka[current_state][symbol] = merged_state
-
-            if merged_state not in processed:
-                stack.append(merged_state)
-        processed.add(current_state)
-
-    return dka
 
 def write_to_file_dfa(filename, symbols, dfa_table, ordered_states):
     with open(filename, "w") as file:
@@ -248,7 +208,7 @@ def main():
     epsilon_closures = compute_closure(quantity_states, nfa_table)
     print_closures(epsilon_closures)
 
-    dfa_data = nka_to_dka(nfa_table, epsilon_closures)
+    dfa_data = nfa_to_dfa(ordered_symbols, nfa_table, epsilon_closures)
 
     dfa_table = dfa_data[0]
     ordered_states_t = dfa_data[1]
