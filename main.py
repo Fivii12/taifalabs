@@ -131,8 +131,10 @@ def mili_to_moore(df, np_df):
         moore_with_symbols[state] = []
         moore_counter = 0
         print(ordered_states_sorted[qstate][0], prev_state)
-        if ordered_states_sorted[qstate][0] == prev_state: # если s-ки одинаковые то одни и те же состояния
-            moore_step -= 1 # вычитаем чтобы начать оттуда же
+        if len(ordered_states_sorted[qstate][0]) > 1:
+            moore_step = int(ordered_states_sorted[qstate][0][1])
+        else:
+            moore_step = int(ordered_states_sorted[qstate][0][0])
         # начинаем с текущего смещения moore_step
         for i in range(moore_step, len(keys)):
             key = keys[i]  # берем ключ с учетом смещения
@@ -151,7 +153,8 @@ def mili_to_moore(df, np_df):
             # когда нашли все переходы, увеличиваем сдвиг на 1 и выходим из цикла
             if moore_counter == np_df.shape[0]:
                 prev_state = key
-                moore_step = i + 1  # Сохраняем сдвиг для следующего состояния
+                  # Сохраняем сдвиг для следующего состояния
+                print('moore_step', moore_step)
                 break  # Прерываем цикл по ключам для данного состояния
 
 
