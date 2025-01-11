@@ -95,7 +95,7 @@ def mili_to_moore(df, np_df):
     ordered_states_sorted = dict(sorted(ordered_states.items()))
     print(new_states)
     print(ordered_states)
-    print("ordered_states_sorted(Moore:Mealy)", ordered_states_sorted)
+    print("ordered_states_sorted", ordered_states_sorted)
 
     transitions_dict = {}
     np_df = df.to_numpy()
@@ -117,6 +117,9 @@ def mili_to_moore(df, np_df):
 
     moore = {}
     keys = list(transitions_dict.keys())  # Преобразуем ключи в список для индексации
+    print('keys', keys)
+    print('qstates', qstates)
+    print('transitions_dict', transitions_dict)
     moore_step = 0  # Сдвиг для ключа
     moore_with_symbols = {}
     past_states = []
