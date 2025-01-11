@@ -1,6 +1,6 @@
 import pandas as pd
 from graphviz import Digraph
-
+# независимо от названия(от номера)
 def read_csv(file_path, delimiter=';'):
     """
     Загружает CSV файл и возвращает DataFrame и numpy-массив.
