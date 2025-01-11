@@ -191,13 +191,13 @@ def mili_minimization():
     print(start_number)
 
     while True:
-        mid_array = make_group_transitions(grouped_indices, transitions_grouped, start_number)
+        mid_array = make_group_transitions(grouped_indices, transitions_grouped, start_number) # в какую группу переходы по группам
         print('mid_array', mid_array)
 
         mid_groups = make_new_group_indeces(mid_array, grouped_indices)
         new_grouped_indices = list(mid_groups.values())
         print('new_grouped_indices', new_grouped_indices)
-
+        print('old_grouped_indices', grouped_indices)
         # Если группы не изменились, завершаем процесс
         if new_grouped_indices == grouped_indices:
             break
@@ -281,7 +281,7 @@ def make_group_transitions_moore(groups, transtions_grouped, start_number):
             aray = []
             for elem in transtions_grouped[state]: # по переходу
 
-                a = get_group_for_state(int(str(int(elem) - start_number)), groups)
+                a = get_group_for_state(int(elem) - start_number, groups)
                 aray.append(a)
             second_aray.append(aray)
         final_aray.append(second_aray)
@@ -335,7 +335,7 @@ def make_moore_dataframe_and_graph(new_grouped_indices, transitions, rows_names,
     print(col_arr)
 
     #Создаем DataFrame
-    dot.render('final_state_machine', format='png', cleanup=True)
+    dot.render('moore_graph', format='png', cleanup=True)
 
     df = pd.DataFrame(transposed_rows, columns=[yarr, col_arr])
     print(df.columns)
