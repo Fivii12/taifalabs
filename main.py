@@ -76,7 +76,7 @@ def mili_to_moore(df, np_df):
     added_states_without_transitions = []
     a = 0
     ordered_states = {}
-
+    # added_states_without_transitions - список символов переходных, added_states - переходные состояния и выходные символы
     for key in new_states:
         counter = 0
         step = state_count[new_states[key][0]]
@@ -218,8 +218,8 @@ def moore_to_mili(df, np_df):
     for i in range(cols):
         x = df.iloc[i+1].values
         for j in range(1, len(x)):
-            ind = xvalue.index(x[j])
-            x[j] = x[j] + '/' + yvalue[ind]
+            ind = xvalue.index(x[j]) # нахожу по индексу кушку
+            x[j] = x[j] + '/' + yvalue[ind] # нахожу по индексу кушки игрек
             df.columns = [col.replace('y', '') for col in df.columns]
 
     # Устанавливаем новые заголовки
