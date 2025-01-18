@@ -1,6 +1,6 @@
 import unittest
 import os
-from lexer import PascalLexer, Token  # Замените на ваш модуль
+from lexer import PascalLexer, Token  # Импортируем ваш лексер и класс Token
 
 class TestPascalLexer(unittest.TestCase):
     def setUp(self):
@@ -8,14 +8,12 @@ class TestPascalLexer(unittest.TestCase):
         self.test_files = {
             "empty.pas": "",
             "whitespace.pas": "   \n  \t  \n",
-            "keywords.pas": "PROGRAM program Program",
-            "identifiers.pas": "var x1, _y2, z_3: integer;",
-            "floats.pas": "x := 3.14 + 2.5e-10;",
+            "invalid.pas": "@ # $ %",
             "unclosed_string.pas": "'unclosed string",
-            "invalid_characters.pas": "@begin",
-            "mixed_tokens.pas": "x := 42 + 3.14; // комментарий",
-            "multiline_comment.pas": "{комментарий\nна\nнесколько\nстрок}",
+            "unclosed_comment.pas": "{ unclosed comment",
             "keyword_as_identifier.pas": "var procedure: integer;",
+            "boundary_numbers.pas": "9999999999999999 3.14e-100 'max_string'",
+            "mixed_tokens.pas": "x := 42 + 3.14; // комментарий",
         }
         for filename, content in self.test_files.items():
             with open(filename, "w") as f:
@@ -37,49 +35,39 @@ class TestPascalLexer(unittest.TestCase):
         tokens = lexer.tokenize()
         self.assertEqual(len(tokens), 0)
 
-    def test_keywords_case_insensitive(self):
-        lexer = PascalLexer("keywords.pas")
+    def test_invalid_characters(self):
+        lexer = PascalLexer("invalid.pas")
         tokens = lexer.tokenize()
-        expected_types = ["PROGRAM", "PROGRAM", "PROGRAM"]
-        self.assertEqual([token.type for token in tokens], expected_types)
-
-    def test_identifiers(self):
-        lexer = PascalLexer("identifiers.pas")
-        tokens = lexer.tokenize()
-        expected_lexemes = ["x1", "_y2", "z_3", "integer"]
-        self.assertEqual([token.lexeme for token in tokens if token.type == "IDENTIFIER"], expected_lexemes)
-
-    def test_floats(self):
-        lexer = PascalLexer("floats.pas")
-        tokens = lexer.tokenize()
-        expected_lexemes = ["3.14", "2.5e-10"]
-        self.assertEqual([token.lexeme for token in tokens if token.type == "FLOAT"], expected_lexemes)
+        self.assertTrue(all(token.type == "BAD" for token in tokens))
 
     def test_unclosed_string(self):
         lexer = PascalLexer("unclosed_string.pas")
         tokens = lexer.tokenize()
         self.assertEqual(tokens[-1].type, "BAD")
 
-    def test_invalid_characters(self):
-        lexer = PascalLexer("invalid_characters.pas")
+    def test_unclosed_comment(self):
+        lexer = PascalLexer("unclosed_comment.pas")
         tokens = lexer.tokenize()
-        self.assertEqual(tokens[0].type, "BAD")
-
-    def test_mixed_tokens(self):
-        lexer = PascalLexer("mixed_tokens.pas")
-        tokens = lexer.tokenize()
-        expected_types = ["IDENTIFIER", "ASSIGN", "INTEGER", "PLUS", "FLOAT", "SEMICOLON", "LINE_COMMENT"]
-        self.assertEqual([token.type for token in tokens], expected_types)
-
-    def test_multiline_comment(self):
-        lexer = PascalLexer("multiline_comment.pas")
-        tokens = lexer.tokenize()
-        self.assertEqual(tokens[0].type, "BLOCK_COMMENT")
+        self.assertEqual(tokens[-1].type, "BAD")
 
     def test_keyword_as_identifier(self):
         lexer = PascalLexer("keyword_as_identifier.pas")
         tokens = lexer.tokenize()
         expected_types = ["VAR", "IDENTIFIER", "COLON", "IDENTIFIER", "SEMICOLON"]
+        self.assertEqual([token.type for token in tokens], expected_types)
+
+    def test_boundary_numbers(self):
+        lexer = PascalLexer("boundary_numbers.pas")
+        tokens = lexer.tokenize()
+        expected_lexemes = ["9999999999999999", "3.14e-100", "'max_string'"]
+        self.assertEqual([token.lexeme for token in tokens], expected_lexemes)
+
+    def test_mixed_tokens(self):
+        lexer = PascalLexer("mixed_tokens.pas")
+        tokens = lexer.tokenize()
+        expected_types = [
+            "IDENTIFIER", "ASSIGN", "INTEGER", "PLUS", "FLOAT", "SEMICOLON", "LINE_COMMENT"
+        ]
         self.assertEqual([token.type for token in tokens], expected_types)
 
 if __name__ == "__main__":

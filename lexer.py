@@ -1,23 +1,38 @@
 import sys
 import re
 
-# Определение токенов
+# определение токенов
 tokens = [
-    # Ключевые слова
+    # ключевые слова
     'ARRAY', 'BEGIN', 'ELSE', 'END', 'IF', 'OF', 'OR', 'PROGRAM', 'PROCEDURE', 'THEN', 'TYPE', 'VAR',
-    # Операторы и знаки пунктуации
+    # операторы и знаки пунктуации
     'MULTIPLICATION', 'PLUS', 'MINUS', 'DIVIDE', 'SEMICOLON', 'COMMA', 'LEFT_PAREN', 'RIGHT_PAREN',
     'LEFT_BRACKET', 'RIGHT_BRACKET', 'EQ', 'GREATER', 'LESS', 'LESS_EQ', 'GREATER_EQ', 'NOT_EQ', 'COLON',
     'ASSIGN', 'DOT',
-    # Литералы и идентификаторы
+    # литералы и идентификаторы
     'IDENTIFIER', 'STRING', 'INTEGER', 'FLOAT',
-    # Комментарии
+    # комментарии
     'LINE_COMMENT', 'BLOCK_COMMENT',
-    # Специальные
+    # специальные
     'BAD', 'EOF'
 ]
 
-# Регулярные выражения для токенов
+RESERVED_KEYWORDS = {
+    'array': 'ARRAY',
+    'begin': 'BEGIN',
+    'else': 'ELSE',
+    'end': 'END',
+    'if': 'IF',
+    'of': 'OF',
+    'or': 'OR',
+    'program': 'PROGRAM',
+    'procedure': 'PROCEDURE',
+    'then': 'THEN',
+    'type': 'TYPE',
+    'var': 'VAR',
+}
+
+# регулярные выражения для токенов
 token_regex = [
     # ключевые слова (регистронезависимые)
     (r'\b(?i:array)\b', 'ARRAY'),
@@ -32,7 +47,18 @@ token_regex = [
     (r'\b(?i:then)\b', 'THEN'),
     (r'\b(?i:type)\b', 'TYPE'),
     (r'\b(?i:var)\b', 'VAR'),
+    # комментарии
+    (r'//.*', 'LINE_COMMENT'),
+    (r'\{[^}]*\}', 'BLOCK_COMMENT'),
+    # литералы идентификаторы
+    (r'[a-zA-Z_][a-zA-Z0-9_]{0,255}', 'IDENTIFIER'),
+    (r"'[^']*'", 'STRING'),
+    (r'\d+\.\d+([eE][+-]?\d+)?', 'FLOAT'),
+    (r'\d{1,16}', 'INTEGER'),
     # операторы и пунктуация
+    (r':=', 'ASSIGN'),
+    (r':', 'COLON'),
+    (r'\.', 'DOT'),
     (r'\*', 'MULTIPLICATION'),
     (r'\+', 'PLUS'),
     (r'-', 'MINUS'),
@@ -43,31 +69,21 @@ token_regex = [
     (r'\)', 'RIGHT_PAREN'),
     (r'\[', 'LEFT_BRACKET'),
     (r'\]', 'RIGHT_BRACKET'),
-    (r'=', 'EQ'),
-    (r'>', 'GREATER'),
-    (r'<', 'LESS'),
     (r'<=', 'LESS_EQ'),
     (r'>=', 'GREATER_EQ'),
     (r'<>', 'NOT_EQ'),
-    (r':=', 'ASSIGN'),
-    (r':', 'COLON'),
-    (r'\.', 'DOT'),
-    # литералы идентификаторы
-    (r'[a-zA-Z_][a-zA-Z0-9_]{0,255}', 'IDENTIFIER'),
-    (r"'[^']*'", 'STRING'),
-    (r'\d+\.\d+([eE][+-]?\d+)?', 'FLOAT'),
-    (r'\d{1,16}', 'INTEGER'),
-    # комментарии
-    (r'//.*', 'LINE_COMMENT'),
-    (r'\{[^}]*\}', 'BLOCK_COMMENT'),
+    (r'=', 'EQ'),
+    (r'>', 'GREATER'),
+    (r'<', 'LESS'),
     # пробелы и конец строки
     (r'[ \t]+', None),
     (r'\n', None),
     # некорректные символы
+    (r'\{[^}]*', 'BAD'),
     (r'[^\s]', 'BAD')
 ]
 
-# Класс для хранения информации о токене
+# класс для хранения информации о токене
 class Token:
     def __init__(self, type, lexeme, line, column):
         self.type = type
@@ -78,7 +94,7 @@ class Token:
     def __str__(self):
         return f'{self.type} ({self.line}, {self.column}) "{self.lexeme}"'
 
-# Лексический анализатор
+# лексер
 class PascalLexer:
     def __init__(self, input_file):
         self.input_file = input_file
@@ -90,14 +106,14 @@ class PascalLexer:
 
     def next_token(self):
         if self.position >= len(self.buffer):
-            return None  # Конец файла
+            return None  # конец файла
 
         for regex, token_type in token_regex:
             match = re.match(regex, self.buffer[self.position:])
             if match:
                 lexeme = match.group(0)
                 if token_type is None:
-                    # Пропускаем пробелы и символы новой строки
+
                     if '\n' in lexeme:
                         self.current_line += lexeme.count('\n')
                         self.current_column = 1
@@ -109,19 +125,22 @@ class PascalLexer:
                 self.position += len(lexeme)
                 self.current_column += len(lexeme)
                 if token_type in ['LINE_COMMENT', 'BLOCK_COMMENT']:
-                    # Пропускаем комментарии
+                    # пропускаем комментарии
                     return self.next_token()
+                if token_type == 'IDENTIFIER' and lexeme.lower() in RESERVED_KEYWORDS:
+                    return Token('BAD', lexeme, self.current_line, self.current_column)
                 return token
 
-        # Если не удалось распознать токен, возвращаем BAD
+        # если не удалось распознать токен, возвращаем BAD
         lexeme = self.buffer[self.position]
         token = Token('BAD', lexeme, self.current_line, self.current_column)
+        print(token)
         self.position += 1
         self.current_column += 1
         return token
 
     def tokenize(self):
-        with open(self.input_file, 'r') as file:
+        with open(self.input_file, 'r', encoding='utf-8') as file:
             self.buffer = file.read()
 
         tokens = []
@@ -135,7 +154,7 @@ class PascalLexer:
 # Основная функция
 def main():
     if len(sys.argv) != 3:
-        print("Usage: python PascalLexer.py <input_file> <output_file>")
+        print("использование: python lexer.py <input_file> <output_file>")
         sys.exit(1)
 
     input_file = sys.argv[1]
@@ -144,9 +163,9 @@ def main():
     lexer = PascalLexer(input_file)
     tokens = lexer.tokenize()
 
-    with open(output_file, 'w') as output:
+    with open(output_file, 'w', encoding='utf-8') as output:
         for token in tokens:
-            print(token)  # Печатает токен в консоль
+            print(token)
             output.write(str(token) + '\n')
 
 if __name__ == "__main__":
