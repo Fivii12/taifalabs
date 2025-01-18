@@ -107,7 +107,7 @@ def dfs(table, state, closure):
 
 
 def compute_closure(count_states, table):
-    epsilon_closures = defaultdict(set)
+    epsilon_closures = {}
 
     for state in range(count_states):
         closure = set()
@@ -125,65 +125,83 @@ def print_closures(epsilon_closures):
 
 # CONVERT TO DFA
 
+def nla_to_dla(grammar, epsilon_closures):
+    stack = deque()
+    dka = {}
+    processed = set()
+    stack.append('0')
+    f = 0
+    qstates = {}
+    all_states = []
+    while stack:
+        is_end = ''
+        f += 1
+        print(f, f'current state: {stack}')
 
-def add_adjustment_state(count_iteration, current_name_state, adjustment_states):
-    adjustment_name_state = f"{'q'}{count_iteration}"
+        current_state = stack.popleft()
+        state_for_q = current_state
+        for check_state in current_state:
+            for aditional_state in epsilon_closures[int(check_state)]:
+                if str(aditional_state) not in current_state:
+                    if aditional_state == -1:
+                        is_end = '(end)'
+                    else:
+                        current_state += str(aditional_state)
 
-    for child_name_state in current_name_state:
-        if child_name_state == end_state_name:
-            adjustment_name_state += "(end)"
-            break
+        current_state = sorted(current_state)
+        new_state = f'q{f - 1}{is_end}'
+        all_states.append(new_state)
+        qstates[state_for_q] = ''.join(new_state)
+        # eclose
+        merged_current_state = ''
+        transitions_by_symbol = {}
+        for one_state in current_state:
 
-    adjustment_states[tuple(current_name_state)] = adjustment_name_state
+            for state in str(one_state):
+                state = int(state)
+                if state not in grammar:
+                    continue
 
+                # символ и переход для состояния
+                for symbol, next_states in grammar[state].items():
+                    if symbol == "@":
+                        continue
+                    print(symbol, next_states)
+                    if symbol not in transitions_by_symbol:
+                        transitions_by_symbol[symbol] = []
+                    # переходы для символа
+                    transitions_by_symbol[symbol].extend(next_states)
 
-def nfa_to_dfa(ordered_symbols, nfa_table, epsilon_closures):
-    dfa_table = defaultdict(lambda: defaultdict(str))
-    dfa_states = set()
-    ordered_states = []
-    state_queue = deque()
+        print(f"transitions_by_terminal: {transitions_by_symbol}")
+        merged_state = ''
+        for symbol, transitions in transitions_by_symbol.items():
+            print(f"transitions: {symbol, transitions}")
+            #соединяем для передачи
+            merged_state = ''.join(sorted(set(''.join(str(transition)) for transition in transitions)))
+            merged_current_state = ''
+            for current_state_1 in current_state:
+                merged_current_state += str(current_state_1)
+            if state_for_q not in dka:
+                dka[state_for_q] = {}
+            dka[state_for_q][symbol] = merged_state
 
-    start_state = list(epsilon_closures[0])
-    state_queue.append(start_state)
-    dfa_states.add(tuple(start_state))
+            if merged_state not in processed:
+                stack.append(merged_state)
+                processed.add(merged_state)
+        processed.add(merged_current_state)
 
-    adjustment_states = {}
-    add_adjustment_state(0, start_state, adjustment_states)
-    ordered_states.append(adjustment_states[tuple(start_state)])
+    a = replace_values(dka, qstates)
 
-    count_iteration = 1
+    return a, all_states
 
-    while state_queue:
-        current_name_state = state_queue.popleft()
-
-        for symbol in ordered_symbols:
-            unique_states = set()
-            for child_name_state in current_name_state:
-                if child_name_state != -1 and symbol in nfa_table[child_name_state]:
-                    for next_state in nfa_table[child_name_state][symbol]:
-                        unique_states.update(epsilon_closures[next_state])
-
-            new_name_state = sorted(list(unique_states))
-
-            if not new_name_state:
-                dfa_table[adjustment_states[tuple(current_name_state)]][symbol] = "-"
-                print(f"{adjustment_states[tuple(current_name_state)]} -- {symbol} --> -")
-            else:
-                if tuple(new_name_state) not in dfa_states:
-                    add_adjustment_state(count_iteration, new_name_state, adjustment_states)
-                    count_iteration += 1
-
-                    state_queue.append(new_name_state)
-                    dfa_states.add(tuple(new_name_state))
-                    ordered_states.append(adjustment_states[tuple(new_name_state)])
-
-                dfa_table[adjustment_states[tuple(current_name_state)]][symbol] = adjustment_states[tuple(new_name_state)]
-                print(f"{adjustment_states[tuple(current_name_state)]} -- {symbol} --> {adjustment_states[tuple(new_name_state)]}")
-
-    return [dfa_table, ordered_states]
-
-
-
+def replace_values(transitions, reverse_mapping):
+    new_transitions = {}
+    for state, transitions_dict in transitions.items():
+        new_transitions[reverse_mapping.get(state, state)] = {
+            symbol: reverse_mapping.get(next_state, next_state)
+            for symbol, next_state in transitions_dict.items()
+        }
+    return new_transitions
 
 def write_to_file_dfa(filename, symbols, dfa_table, ordered_states):
     with open(filename, "w") as file:
@@ -208,11 +226,11 @@ def main():
     epsilon_closures = compute_closure(quantity_states, nfa_table)
     print_closures(epsilon_closures)
 
-    dfa_data = nfa_to_dfa(ordered_symbols, nfa_table, epsilon_closures)
-
+   # dfa_data = nka_to_dka(nfa_table, epsilon_closures)
+    dfa_data = nla_to_dla(nfa_table, epsilon_closures)
     dfa_table = dfa_data[0]
     ordered_states_t = dfa_data[1]
-
+    #
     write_to_file_dfa(output_file, ordered_symbols, dfa_table, ordered_states_t)
 
 

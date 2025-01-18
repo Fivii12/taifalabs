@@ -88,8 +88,8 @@
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([{"color": "#97c2fc", "id": "q0", "label": "q0", "shape": "dot"}, {"color": "#97c2fc", "id": "q1(end)", "label": "q1(end)", "shape": "dot"}, {"color": "#97c2fc", "id": "q2(end)", "label": "q2(end)", "shape": "dot"}, {"color": "#97c2fc", "id": "q3(end)", "label": "q3(end)", "shape": "dot"}, {"color": "#97c2fc", "id": "q4", "label": "q4", "shape": "dot"}, {"color": "#97c2fc", "id": "q5(end)", "label": "q5(end)", "shape": "dot"}, {"color": "#97c2fc", "id": "q6", "label": "q6", "shape": "dot"}, {"color": "#97c2fc", "id": "q7(end)", "label": "q7(end)", "shape": "dot"}]);
-                  edges = new vis.DataSet([{"arrows": "to", "from": "q0", "label": "a", "to": "q1(end)"}, {"arrows": "to", "from": "q0", "label": "b", "to": "q2(end)"}, {"arrows": "to", "from": "q0", "label": "c", "to": "q3(end)"}, {"arrows": "to", "from": "q1(end)", "label": "b", "to": "q4"}, {"arrows": "to", "from": "q3(end)", "label": "a", "to": "q5(end)"}, {"arrows": "to", "from": "q3(end)", "label": "c", "to": "q6"}, {"arrows": "to", "from": "q4", "label": "a", "to": "q7(end)"}, {"arrows": "to", "from": "q6", "label": "a", "to": "q5(end)"}, {"arrows": "to", "from": "q6", "label": "c", "to": "q6"}]);
+                  nodes = new vis.DataSet([{"color": "#97c2fc", "id": "q0", "label": "q0", "shape": "dot"}, {"color": "#97c2fc", "id": "q1", "label": "q1", "shape": "dot"}, {"color": "#97c2fc", "id": "q2(end)", "label": "q2(end)", "shape": "dot"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "q0", "label": "a", "to": "q1"}, {"arrows": "to", "from": "q0", "label": "b", "to": "q2(end)"}, {"arrows": "to", "from": "q1", "label": "a", "to": "q1"}, {"arrows": "to", "from": "q1", "label": "b", "to": "q2(end)"}, {"arrows": "to", "from": "q2(end)", "label": "a", "to": "q1"}, {"arrows": "to", "from": "q2(end)", "label": "b", "to": "q2(end)"}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });
