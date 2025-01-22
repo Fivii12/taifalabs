@@ -7,7 +7,7 @@ tokens = [
     'ARRAY', 'BEGIN', 'ELSE', 'END', 'IF', 'OF', 'OR', 'PROGRAM', 'PROCEDURE', 'THEN', 'TYPE', 'VAR',
     # операторы и знаки пунктуации
     'MULTIPLICATION', 'PLUS', 'MINUS', 'DIVIDE', 'SEMICOLON', 'COMMA', 'LEFT_PAREN', 'RIGHT_PAREN',
-    'LEFT_BRACKET', 'RIGHT_BRACKET', 'EQ', 'GREATER', 'LESS', 'LESS_EQ', 'GREATER_EQ', 'NOT_EQ', 'COLON',
+    'LEFT_BRACKET', 'RIGHT_BRACKET', 'DOUBLE_EQ', 'EQ', 'GREATER', 'LESS', 'LESS_EQ', 'GREATER_EQ', 'NOT_EQ', 'COLON',
     'ASSIGN', 'DOT',
     # литералы и идентификаторы
     'IDENTIFIER', 'STRING', 'INTEGER', 'FLOAT',
@@ -51,12 +51,22 @@ token_regex = [
     (r'//.*', 'LINE_COMMENT'),
     (r'\{[^}]*\}', 'BLOCK_COMMENT'),
     # литералы идентификаторы
-    (r'[a-zA-Z_][a-zA-Z0-9_]{0,255}', 'IDENTIFIER'),
+
+    # Некорректные строки (содержащие кириллицу)
+    (r'\b(?:\d+\.)+\d+\.(?:[a-df-zA-DF-Zа-яА-Я]+|[a-df-zA-DF-Zа-яА-Я]+.*)\b', 'BAD'),
+    (r'\d+[a-zA-Zа-яА-Я]+\d{2,}', 'BAD'),  # Ловим строки вроде "123ff33334bfrf"
+    (r'\b\d+[a-zA-Z_]+[a-zA-Z0-9_]*\b', 'BAD'),  # Ловим строки вроде "123a123"
+    (r'\b\d+[а-яА-Я_]+[a-zA-Z0-9_]*\b', 'BAD'),  #
+    (r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', 'IDENTIFIER'),
     (r"'[^']*'", 'STRING'),
+    (r'\d+(?:\.\d+){2,}', 'BAD'),
     (r'\d+\.\d+([eE][+-]?\d+)?', 'FLOAT'),
+    (r'\.\d+([eE][+-]?\d+)?', 'FLOAT'),  # числа, начинающиеся с точки
+    (r'\d+[eE][+-]?\d+', 'FLOAT'),  # числа с экспонентой
     (r'-?32768', 'BAD'),
     (r'-?\d{6,}', 'BAD'),
     (r'-?\d{1,5}', 'INTEGER'),
+
     # операторы и пунктуация
     (r':=', 'ASSIGN'),
     (r':', 'COLON'),
@@ -74,6 +84,7 @@ token_regex = [
     (r'<=', 'LESS_EQ'),
     (r'>=', 'GREATER_EQ'),
     (r'<>', 'NOT_EQ'),
+    (r'==', 'DOUBLE_EQ'),
     (r'=', 'EQ'),
     (r'>', 'GREATER'),
     (r'<', 'LESS'),
@@ -113,6 +124,7 @@ class PascalLexer:
 
         for regex, token_type in token_regex:
             match = re.match(regex, self.buffer[self.position:])
+            print(self.buffer[self.position:])
             if match:
                 lexeme = match.group(0)
                 if token_type is None:
