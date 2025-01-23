@@ -55,9 +55,11 @@ token_regex = [
     (r'//.*', 'LINE_COMMENT'),
     (r'\{[^}]*\}', 'BLOCK_COMMENT'),
     (r'\.\.', 'DOUBLE_DOT'),
-    # литералы идентификаторы
+    # строка
+
     (r"'[^']*'", 'STRING'),
     (r"\'[^']*", 'BAD'),
+
     # Некорректные строки (содержащие кириллицу)
     (r'\b(?:\d+\.)+\d+\.(?:[a-df-zA-DF-Zа-яА-Я]+|[a-df-zA-DF-Zа-яА-Я]+.*)\b', 'BAD'), # 1.2.3.abc
     (r'\d+[a-zA-Zа-яА-Я]+\d{2,}', 'BAD'),  # "123ff33334bfrf"
@@ -190,7 +192,7 @@ class PascalLexer:
             self.buffer = file.read()
 
             if not self.buffer.strip():
-                return [Token('BAD', 'Empty File', 1, 1)]  # Возвращаем токен EOF
+                return [Token('BAD', 'Empty File', 1, 1)]
 
         tokens = []
         while True:
