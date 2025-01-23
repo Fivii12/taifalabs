@@ -163,13 +163,14 @@ def find_start_number(arr):
     min_number = 100000000000000000
     for i, array in enumerate(arr):
         for j, elem in enumerate(array):
-            finalelem = str(elem)
-            if len(finalelem) > 1:
-                finalelem = int(elem[1])
-            else:
-                finalelem = int(elem)
-            if finalelem < min_number:
-                min_number = finalelem
+            if str(elem) != '-':
+                finalelem = str(elem)
+                if len(finalelem) > 1:
+                    finalelem = int(elem[1])
+                else:
+                    finalelem = int(elem)
+                if finalelem < min_number:
+                    min_number = finalelem
     return min_number
 
 
