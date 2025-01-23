@@ -98,12 +98,12 @@ def regular_expression_to_nfa(regex):
 # EPSILON CLOSURES
 
 
-def dfs(table, state, closure):
+def find_e_closure(table, state, closure):
     if state not in closure:
         closure.add(state)
         if '@' in table[state]:
             for next_state in table[state]['@']:
-                dfs(table, next_state, closure)
+                find_e_closure(table, next_state, closure)
 
 
 def compute_closure(count_states, table):
@@ -111,7 +111,7 @@ def compute_closure(count_states, table):
 
     for state in range(count_states):
         closure = set()
-        dfs(table, state, closure)
+        find_e_closure(table, state, closure)
         epsilon_closures[state] = closure
 
     return epsilon_closures
@@ -209,7 +209,6 @@ def write_to_file_dfa(filename, symbols, dfa_table, ordered_states):
                 if transition == "-":
                     file.write(";-")
                 else:
-                    # Убираем "(end)" из имён состояний в переходах
                     file.write(f";{transition.replace('(end)', '')}")
             file.write("\n")
 
@@ -218,10 +217,11 @@ def main():
     regular_expression = read_regex_from_file(input_file)
     nfa_data = regular_expression_to_nfa(regular_expression)
 
-    symbols = nfa_data[1]
-    ordered_symbols = sorted(symbols)
     nfa_table = nfa_data[0]
+    symbols = nfa_data[1]
     quantity_states = nfa_data[2]
+
+    ordered_symbols = sorted(symbols)
 
     epsilon_closures = compute_closure(quantity_states, nfa_table)
     print_closures(epsilon_closures)
