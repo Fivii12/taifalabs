@@ -328,7 +328,7 @@ def make_moore_dataframe_and_graph(new_grouped_indices, transitions, rows_names,
         for group_transition_id, group_transition in enumerate(states):
             row = []
             for transition in group_transition:
-                if transition == '-':  # Обрабатываем '-' как отсутствие перехода
+                if transition == '-': 
                     row.append('-')
                 else:
                     row.append(f'q{transition}')
