@@ -1,8 +1,7 @@
 
 .gigaide/gigaide.properties
 output.txt
+
 input.txt
-graph.html
-input.txt
-output.txt
+
 graph.png
