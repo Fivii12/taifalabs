@@ -54,34 +54,39 @@ token_regex = [
     # комментарии
     (r'//.*', 'LINE_COMMENT'),
     (r'\{[^}]*\}', 'BLOCK_COMMENT'),
-
+    (r'\.\.', 'DOUBLE_DOT'),
     # литералы идентификаторы
-
+    (r"'[^']*'", 'STRING'),
+    (r"\'[^']*", 'BAD'),
     # Некорректные строки (содержащие кириллицу)
     (r'\b(?:\d+\.)+\d+\.(?:[a-df-zA-DF-Zа-яА-Я]+|[a-df-zA-DF-Zа-яА-Я]+.*)\b', 'BAD'), # 1.2.3.abc
     (r'\d+[a-zA-Zа-яА-Я]+\d{2,}', 'BAD'),  # "123ff33334bfrf"
-    (r'\b\d+[a-zA-Z_]+[a-zA-Z0-9_]*\b', 'BAD'),  # "123a123"
+    (r'\b\d+[a-df-zA-DF-Zа-яА-Я]+[a-df-zA-DF-Zа-яА-Я0-9_]*\b', 'BAD'),  # "123a123"
 
     (R"([^\s,.:;(){}\[\]\+\-\*/:=<>]*[а-яА-Я]+[^\s,.:;(){}\[\]\+\-\*/:=<>]*)", "BAD"), # RUSSIAN
 
     (r'\b[a-zA-Z_][a-zA-Z0-9_]{256,}\b', 'BAD'), # identifier > 256 chars
 
     (r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', 'IDENTIFIER'),
-    (r"'[^']*'", 'STRING'),
+
 
     (r'\d+\.\d+([eE][+-]?\d{3,})', 'BAD'),# длина > 3
     (r'\.\d+([eE][+-]?(\d{3,}))', 'BAD'), # длина > 3
     (r'\d+[eE][+-]?\d{3,}', 'BAD'), # длина > 3
-    (r'\d+(?:\.\d+){2,}', 'BAD'), # длина > 2
+    (r'\d+(?:\.\d+){3,}', 'BAD'), # длина > 2
 
     (r'\d+\.\d+([eE][+-]?\d+)?', 'FLOAT'),
-    (r'\.\d+([eE][+-]?(\d))?', 'FLOAT'),  # числа, начинающиеся с точки
+    (r'\.\d+([eE][+-]?\d+)?', 'FLOAT'),  # числа, начинающиеся с точки
     (r'\d+[eE][+-]?\d+', 'FLOAT'),  # числа с экспонентой
 
     (r'-?32768', 'BAD'), # +-32768
     (r'-?\d{6,}', 'BAD'), # < 6
-    (r'-?\d{1,5}', 'INTEGER'),
 
+    (r'-?\d{1,5}', 'INTEGER'),
+    # для интов E, через е больше 1 не воспринимает
+    # array
+    # не выводить комменты
+    # ошибку при пустом файле сделать
     # операторы и пунктуация
     (r':=', 'ASSIGN'),
     (r':', 'COLON'),
@@ -103,6 +108,8 @@ token_regex = [
     (r'=', 'EQ'),
     (r'>', 'GREATER'),
     (r'<', 'LESS'),
+    # при пустом токен выводить пустого
+    # при русском строка ломается
 
     # пробелы и конец строки
     (r'[ \t]+', None),
@@ -110,8 +117,8 @@ token_regex = [
 
     # некорректные символы
     (r'\{[^}]*', 'BAD'),
-    (r"\'[^']*", 'BAD'),
-    (r'[^\s]', 'BAD')
+    (r'[^\s]', 'BAD'),
+    (r'\n', 'BAD'),
 ]
 
 # класс для хранения информации о токене
@@ -163,8 +170,9 @@ class PascalLexer:
                 if token_type == 'BLOCK_COMMENT':
                     newline_count = lexeme.count('\n')
                     self.current_line += newline_count
-
-
+                    return self.next_token()
+                if token_type == 'LINE_COMMENT':
+                    return self.next_token()
                 if token_type == 'IDENTIFIER' and lexeme.lower() in RESERVED_KEYWORDS:
                     return Token('BAD', lexeme, self.current_line, self.current_column)
                 return token
@@ -177,9 +185,12 @@ class PascalLexer:
         self.current_column += 1
         return token
 
-    def tokenize(self):
+    def tokenize(self, output_file):
         with open(self.input_file, 'r', encoding='utf-8') as file:
             self.buffer = file.read()
+
+            if not self.buffer.strip():
+                return [Token('BAD', 'Empty File', 1, 1)]  # Возвращаем токен EOF
 
         tokens = []
         while True:
@@ -199,7 +210,7 @@ def main():
     output_file = sys.argv[2]
 
     lexer = PascalLexer(input_file)
-    tokens = lexer.tokenize()
+    tokens = lexer.tokenize(output_file)
 
     with open(output_file, 'w', encoding='utf-8') as output:
         for token in tokens:
