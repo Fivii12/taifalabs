@@ -137,7 +137,7 @@ def add_adjustment_state(count_iteration, current_name_state, adjustment_states)
     adjustment_states[tuple(current_name_state)] = adjustment_name_state
 
 
-def nfa_to_dfa(ordered_symbols, nfa_table, epsilon_closures):
+def nka_to_dka(ordered_symbols, nfa_table, epsilon_closures):
     dfa_table = defaultdict(lambda: defaultdict(str))
     dfa_states = set()
     ordered_states = []
@@ -206,7 +206,7 @@ def main():
     epsilon_closures = compute_closure(quantity_states, nfa_table)
     print_closures(epsilon_closures)
 
-    dfa_data = nfa_to_dfa(ordered_symbols, nfa_table, epsilon_closures)
+    dfa_data = nka_to_dka(ordered_symbols, nfa_table, epsilon_closures)
 
     dfa_table = dfa_data[0]
     ordered_states = dfa_data[1]
