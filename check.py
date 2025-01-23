@@ -187,16 +187,20 @@ def write_to_file_dfa(filename, symbols, dfa_table, ordered_states):
     with open(filename, "w") as file:
 
         file.write(";")
-        for state in ordered_states:
-            if "(end)" in state:
-                file.write("1;")
+        for i, state in enumerate(ordered_states):
+            if i == 0:
+                file.write("0")
+            elif "(end)" in state:
+                file.write(";2")
             else:
-                file.write("0;")
+                file.write(";1")
         file.write("\n")
 
+
         file.write(";")
-        file.write(";".join(ordered_states))
+        file.write(";".join([state.replace("(end)", "") for state in ordered_states]))
         file.write("\n")
+
 
         for symbol in symbols:
             file.write(f"{symbol}")
@@ -205,7 +209,8 @@ def write_to_file_dfa(filename, symbols, dfa_table, ordered_states):
                 if transition == "-":
                     file.write(";-")
                 else:
-                    file.write(f";{transition}")
+                    # Убираем "(end)" из имён состояний в переходах
+                    file.write(f";{transition.replace('(end)', '')}")
             file.write("\n")
 
 
