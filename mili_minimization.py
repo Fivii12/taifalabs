@@ -334,7 +334,7 @@ def make_moore_dataframe_and_graph(new_grouped_indices, transitions, rows_names,
     for id, group in enumerate(rows):
         for j, elem in enumerate(group):
             if elem != '-':
-                dot.edge(col_arr[id], elem, label = f'{rows_names[j]}')
+                dot.edge(f'{col_arr[id]}/{yarr[id]}', f'{elem}/{yarr[int(elem[1:])]}', label = f'{rows_names[j]}')
     transposed_rows = list(zip(*rows))
     transposed_rows = [list(col) for col in transposed_rows]
     print(transposed_rows)
