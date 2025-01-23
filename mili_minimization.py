@@ -12,7 +12,7 @@ def read_csv_data(input_file):
     print(df)
     arrays = [df[col].values for col in df.columns]
 
-    return arrays[0], arrays[1:]  # Пропускаем первый столбец, если нужно
+    return arrays[0], arrays[1:]
 
 
 def get_y_full(arr):
@@ -33,7 +33,7 @@ def get_transition(arr):
             if transition[0] in numbers:
                 array.append(transition)
             else:
-                array.append(transition[1:]) # подумать если есть s или нет как исправить
+                array.append(transition[1:])
 
     return array
 def init(array, rows_len):
@@ -53,18 +53,16 @@ def init(array, rows_len):
         transitions_grouped.append(transitionGroup)
 
     return yarray_grouped, transitions_grouped, secarr_grouped
-# Словарь для группировки
 
-# Проходим по массиву
 def make_new_group_ygrek(yarray_grouped):
     groups = {}
     for i, group in enumerate(yarray_grouped):
-        key = tuple(group)  # Преобразуем группу в кортеж (чтобы использовать как ключ)
+        key = tuple(group)
         if key not in groups:
-            groups[key] = []  # Если ключа ещё нет, создаём запись
-        #сделать if на случай начала 0  или 1
+            groups[key] = []
 
-        groups[key].append(i + 1)  # Добавляем индекс в соответствующую группу
+
+        groups[key].append(i + 1)
     return groups
 
 
@@ -79,7 +77,7 @@ def make_group_transitions(groups, transtions_grouped, start_number):
         second_aray = []
         for j, state in enumerate(groups[i]): # по индексу(состоянию)
             aray = []
-            for elem in transtions_grouped[state - start_number ]: # по переходу start_number для того чтобы учесть 0 1 2 3 начало кароч
+            for elem in transtions_grouped[state - start_number ]: # по переходу start_number для того чтобы учесть 0 1 2 3 начало
 
                 a = get_group_for_state(int(elem), groups)
                 aray.append(a)
@@ -93,11 +91,11 @@ def make_new_group_indeces(mid_aray, grouped_indices):
     mid_groups = {}
     for i, group in enumerate(mid_aray):  # по объединенным по индексам
         for j, state in enumerate(group):  # по внутренностям групп
-            # Создаем уникальный ключ, добавляя индекс внешнего массива
+            # создаем уникальный ключ добавляя индекс внешнего массива
             key = (i, tuple(state))
             if key not in mid_groups:
-                mid_groups[key] = []  # Если ключа ещё нет, создаём запись
-            mid_groups[key].append(grouped_indices[i][j])  # Добавляем индекс в соответствующую группу
+                mid_groups[key] = []
+            mid_groups[key].append(grouped_indices[i][j])
     return mid_groups
 
 
@@ -126,12 +124,12 @@ def make_mini_mili(secarr_grouped, new_grouped_indices, rows_len):
         transitions_grouped.append(transitionGroup)
     for group in mini_mili:
         new_group = []
-        for j, elem in enumerate(transitions_grouped):  # Предполагаем, что каждый элемент внутри группы - это одно состояние
+        for j, elem in enumerate(transitions_grouped):
             for l, finalelem in enumerate(elem):
-                # Для каждого состояния находим группу, к которой оно относится
+
                 for i, group_indices in enumerate(new_grouped_indices):
                     if int(finalelem) in group_indices:
-                        new_group.append(f's{i}/' + mini_mili[j][l].split('/')[1])  # Заменяем состояние на номер группы
+                        new_group.append(f's{i}/' + mini_mili[j][l].split('/')[1])
                         break
                 new_mini_mili.append(new_group)
 
@@ -192,20 +190,20 @@ def mili_minimization():
     print(start_number)
 
     while True:
-        mid_array = make_group_transitions(grouped_indices, transitions_grouped, start_number) # в какую группу переходы по группам
+        mid_array = make_group_transitions(grouped_indices, transitions_grouped, start_number)
         print('mid_array', mid_array)
 
         mid_groups = make_new_group_indeces(mid_array, grouped_indices)
         new_grouped_indices = list(mid_groups.values())
         print('new_grouped_indices', new_grouped_indices)
         print('old_grouped_indices', grouped_indices)
-        # Если группы не изменились, завершаем процесс
+        # если нет изменений конец
         if new_grouped_indices == grouped_indices:
             break
 
         grouped_indices = new_grouped_indices
 
-    full_states_mili = make_mini_mili(secarr_grouped, new_grouped_indices, rows_len)# доделатть визуализацию и представление в виде графа финальное
+    full_states_mili = make_mini_mili(secarr_grouped, new_grouped_indices, rows_len)
     splitted_arr = split_arr(full_states_mili, rows_len)
     column_names = get_column_names(splitted_arr)
     splitted_arr_transposed = np.array(splitted_arr).T # T чтобы перевернуть(транспонирование)
@@ -225,7 +223,6 @@ def mili_minimization():
     is_last = check_if_last(mid_array)
     print(is_last)
 
-# Запуск минимизации
 
 def read_csv_data_moore(input_file):
     df = pd.read_csv(input_file, sep=';')
@@ -240,14 +237,14 @@ def read_csv_data_moore(input_file):
     arrays = [df[col].values[1:] for col in df.columns]
     col_names = [df[col].values[:1] for col in df.columns]
 
-    return arrays[0], arrays[1:], col_names[1:], ygreks_without_collisions  # Пропускаем первый столбец, если нужно
+    return arrays[0], arrays[1:], col_names[1:], ygreks_without_collisions
 
 def make_new_group_ygrek_moore(yarray_grouped):
     groups = {}
     for i, group in enumerate(yarray_grouped):
         if group not in groups:
-            groups[group] = []  # Создаём запись для группы
-        groups[group].append(i)  # Добавляем индекс (с 1, если нужно)
+            groups[group] = []
+        groups[group].append(i)
     return groups
 
 def initmoore(array, col_len,rows_len):
@@ -278,12 +275,12 @@ def get_transition_moore(arr):
 
 def make_group_transitions_moore(groups, transitions_grouped, start_number):
     final_array = []
-    for i in range(len(groups)):  # по объединенным по y
+    for i in range(len(groups)):
         second_array = []
-        for j, state in enumerate(groups[i]):  # по индексу (состоянию)
+        for j, state in enumerate(groups[i]):
             array = []
-            for elem in transitions_grouped[state]:  # по переходу
-                if elem == '-':  # Обрабатываем '-' как отсутствие перехода
+            for elem in transitions_grouped[state]:
+                if elem == '-':
                     array.append('-')
                 else:
                     a = get_group_for_state(int(elem) - start_number, groups)
@@ -294,14 +291,14 @@ def make_group_transitions_moore(groups, transitions_grouped, start_number):
 
 
 def make_moore_dataframe_and_graph(new_grouped_indices, transitions, rows_names, yarray):
-    # Создаем список для хранения строк
+
     dot = Digraph(comment='final')
 
     rows = []
     col_arr = []
     print(transitions[0])
     yarr = []
-    # Создаем узлы для групп
+
     for group_id, states in enumerate(new_grouped_indices):
         col_arr.append(f'q{group_id}')
         if states[0] in yarray:
@@ -344,12 +341,12 @@ def make_moore_dataframe_and_graph(new_grouped_indices, transitions, rows_names,
     print(yarr)
     print(col_arr)
 
-    #Создаем DataFrame
+
     dot.render('moore_graph', format='png', cleanup=True)
 
     df = pd.DataFrame(transposed_rows, columns=[yarr, col_arr])
     print(df.columns)
-    # Сбрасываем индексацию, чтобы её не было
+
     return df
 
 
@@ -380,7 +377,7 @@ def moore_minimization():
         new_grouped_indices = list(mid_groups.values())
         print('new_grouped_indices', new_grouped_indices)
 
-        # Если группы не изменились, завершаем процесс
+
         if new_grouped_indices == grouped_indices:
             break
 
