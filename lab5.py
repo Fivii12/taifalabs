@@ -6,8 +6,7 @@ end_state_name = -1
 input_file = "input.txt"
 output_file = "output.txt"
 
-# CONVERT TO NFA
-
+# convert to nka
 
 def read_regex_from_file(filename):
     with open(filename, 'r') as file:
@@ -16,12 +15,12 @@ def read_regex_from_file(filename):
     return regex
 
 
-def finalize_transitions(states_to_finalize, transition_table, final_state):
-    for state in states_to_finalize:
+def finalize_transitions(states_to_unite, transition_table, final_state):
+    for state in states_to_unite:
         transition_table[state][void_transition].add(final_state)
         print(f"{state} -- {void_transition} --> {final_state}")
 
-    states_to_finalize.clear()
+    states_to_unite.clear()
 
 
 def get_state_name(start_flag, initial_state, curr_name):
@@ -38,16 +37,17 @@ def add_transition(table, flag, initial_state, curr_name, symbol, next_state):
     print(f"{state} -- {symbol} --> {next_state}")
 
 
-def regular_expression_to_nfa(regex):
+def regular_expression_to_nka(regex):
     transition_table = defaultdict(lambda: defaultdict(set))
     symbols = set()
 
     start_flag = [False]
     curr_name = 0
     initial_states = [curr_name]
-    states_to_finalize = [[]]
+    states_to_unite = [[]]
 
     for i, char in enumerate(regex):
+        print(f'\nшаг: {i} символ: {char} вершина: {curr_name}')
         if char.isalnum():
             symbols.add(char)
 
@@ -61,33 +61,36 @@ def regular_expression_to_nfa(regex):
                 add_transition(transition_table, start_flag, initial_states[-1], curr_name, char, curr_name + 1)
             curr_name += 1
         elif char == '|':
-            states_to_finalize[-1].append(curr_name)
+            states_to_unite[-1].append(curr_name) # добавляем состояние для объединения
             start_flag[0] = True
+            print('состояния для объединения: ', states_to_unite)
         elif char == '(':
-            states_to_finalize.append([])
-            add_transition(transition_table, start_flag, initial_states[-1], curr_name, void_transition, curr_name + 1)
+            states_to_unite.append([])
+            add_transition(transition_table, start_flag, initial_states[-1], curr_name, void_transition, curr_name + 1) # делаем переход в пустую с которой начнем скобку
             initial_states.append(curr_name + 1)
             curr_name += 1
+            print('состояния для объединения: ', states_to_unite)
+            print('начало скобок(последнее- последняя скобка): ', initial_states)
         elif char == ')':
-            states_to_finalize[-1].append(curr_name)
-
+            states_to_unite[-1].append(curr_name)
+            print('состояния для объединения: ', states_to_unite)
             if i + 1 < len(regex) and regex[i + 1] == '*':
-                finalize_transitions(states_to_finalize[-1], transition_table, initial_states[-1])
-                transition_table[initial_states[-1]][void_transition].add(curr_name + 1)
+                finalize_transitions(states_to_unite[-1], transition_table, initial_states[-1]) # обратно на начальную для скобки вершину
+                transition_table[initial_states[-1]][void_transition].add(curr_name + 1)# из назад вперед
                 print(f"{initial_states[-1]} -- {void_transition} --> {curr_name + 1}")
             elif i + 1 < len(regex) and regex[i + 1] == '+':
-                finalize_transitions(states_to_finalize[-1], transition_table, curr_name + 1)
-                transition_table[curr_name + 1][void_transition].add(initial_states[-1])
+                finalize_transitions(states_to_unite[-1], transition_table, curr_name + 1) # вперед
+                transition_table[curr_name + 1][void_transition].add(initial_states[-1]) # из вперед - назад перед скобкой
                 print(f"{curr_name + 1} -- {void_transition} --> {initial_states[-1]}")
             else:
-                finalize_transitions(states_to_finalize[-1], transition_table, curr_name + 1)
+                finalize_transitions(states_to_unite[-1], transition_table, curr_name + 1) # просто вперед
 
             curr_name += 1
             initial_states.pop()
-            states_to_finalize.pop()
+            states_to_unite.pop()
 
-    states_to_finalize[-1].append(curr_name)
-    finalize_transitions(states_to_finalize[-1], transition_table, end_state_name)
+    states_to_unite[-1].append(curr_name)
+    finalize_transitions(states_to_unite[-1], transition_table, end_state_name)
 
     if '@' in symbols:
         symbols.discard('@')
@@ -95,7 +98,7 @@ def regular_expression_to_nfa(regex):
     return [transition_table, symbols, curr_name + 1]
 
 
-# EPSILON CLOSURES
+# find e-closures
 
 
 def find_e_closure(table, state, closure):
@@ -123,7 +126,7 @@ def print_closures(epsilon_closures):
         print(", ".join(map(str, closure)))
 
 
-# CONVERT TO DFA
+# convert to dka
 
 
 def add_adjustment_state(count_iteration, current_name_state, adjustment_states):
@@ -137,15 +140,15 @@ def add_adjustment_state(count_iteration, current_name_state, adjustment_states)
     adjustment_states[tuple(current_name_state)] = adjustment_name_state
 
 
-def nka_to_dka(ordered_symbols, nfa_table, epsilon_closures):
-    dfa_table = defaultdict(lambda: defaultdict(str))
-    dfa_states = set()
+def nka_to_dka(ordered_symbols, nka_table, epsilon_closures):
+    dka_table = defaultdict(lambda: defaultdict(str))
+    dka_states = set()
     ordered_states = []
     state_queue = deque()
 
     start_state = list(epsilon_closures[0])
     state_queue.append(start_state)
-    dfa_states.add(tuple(start_state))
+    dka_states.add(tuple(start_state))
 
     adjustment_states = {}
     add_adjustment_state(0, start_state, adjustment_states)
@@ -159,31 +162,31 @@ def nka_to_dka(ordered_symbols, nfa_table, epsilon_closures):
         for symbol in ordered_symbols:
             unique_states = set()
             for child_name_state in current_name_state:
-                if child_name_state != -1 and symbol in nfa_table[child_name_state]:
-                    for next_state in nfa_table[child_name_state][symbol]:
+                if child_name_state != -1 and symbol in nka_table[child_name_state]:
+                    for next_state in nka_table[child_name_state][symbol]:
                         unique_states.update(epsilon_closures[next_state])
 
             new_name_state = sorted(list(unique_states))
 
             if not new_name_state:
-                dfa_table[adjustment_states[tuple(current_name_state)]][symbol] = "-"
+                dka_table[adjustment_states[tuple(current_name_state)]][symbol] = "-"
                 print(f"{adjustment_states[tuple(current_name_state)]} -- {symbol} --> -")
             else:
-                if tuple(new_name_state) not in dfa_states:
+                if tuple(new_name_state) not in dka_states:
                     add_adjustment_state(count_iteration, new_name_state, adjustment_states)
                     count_iteration += 1
 
                     state_queue.append(new_name_state)
-                    dfa_states.add(tuple(new_name_state))
+                    dka_states.add(tuple(new_name_state))
                     ordered_states.append(adjustment_states[tuple(new_name_state)])
 
-                dfa_table[adjustment_states[tuple(current_name_state)]][symbol] = adjustment_states[tuple(new_name_state)]
+                dka_table[adjustment_states[tuple(current_name_state)]][symbol] = adjustment_states[tuple(new_name_state)]
                 print(f"{adjustment_states[tuple(current_name_state)]} -- {symbol} --> {adjustment_states[tuple(new_name_state)]}")
 
-    return [dfa_table, ordered_states]
+    return [dka_table, ordered_states]
 
 
-def write_to_file_dfa(filename, symbols, dfa_table, ordered_states):
+def write_to_file_dka(filename, symbols, dka_table, ordered_states):
     with open(filename, "w") as file:
 
         file.write(";")
@@ -205,7 +208,7 @@ def write_to_file_dfa(filename, symbols, dfa_table, ordered_states):
         for symbol in symbols:
             file.write(f"{symbol}")
             for state in ordered_states:
-                transition = dfa_table[state][symbol]
+                transition = dka_table[state][symbol]
                 if transition == "-":
                     file.write(";-")
                 else:
@@ -215,23 +218,23 @@ def write_to_file_dfa(filename, symbols, dfa_table, ordered_states):
 
 def main():
     regular_expression = read_regex_from_file(input_file)
-    nfa_data = regular_expression_to_nfa(regular_expression)
+    nka_data = regular_expression_to_nka(regular_expression)
 
-    nfa_table = nfa_data[0]
-    symbols = nfa_data[1]
-    quantity_states = nfa_data[2]
+    nka_table = nka_data[0]
+    symbols = nka_data[1]
+    quantity_states = nka_data[2]
 
     ordered_symbols = sorted(symbols)
 
-    epsilon_closures = compute_closure(quantity_states, nfa_table)
+    epsilon_closures = compute_closure(quantity_states, nka_table)
     print_closures(epsilon_closures)
 
-    dfa_data = nka_to_dka(ordered_symbols, nfa_table, epsilon_closures)
+    dka_data = nka_to_dka(ordered_symbols, nka_table, epsilon_closures)
 
-    dfa_table = dfa_data[0]
-    ordered_states = dfa_data[1]
+    dka_table = dka_data[0]
+    ordered_states = dka_data[1]
 
-    write_to_file_dfa(output_file, ordered_symbols, dfa_table, ordered_states)
+    write_to_file_dka(output_file, ordered_symbols, dka_table, ordered_states)
 
 
 if __name__ == "__main__":
