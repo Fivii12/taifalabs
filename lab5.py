@@ -47,7 +47,6 @@ def regular_expression_to_nka(regex):
     states_to_unite = [[]]
 
     for i, char in enumerate(regex):
-
         print(f'\nшаг: {i} символ: {char} вершина: {curr_name}')
         if char.isalnum():
             symbols.add(char)
@@ -83,6 +82,8 @@ def regular_expression_to_nka(regex):
                 transition_table[curr_name + 1][void_transition].add(initial_states[-1]) # из вперед - назад перед скобкой
                 print(f"{curr_name + 1} -- {void_transition} --> {initial_states[-1]}")
             else:
+                print('состояния для объединения: ', states_to_unite)
+                print('стартовые состояния: ', initial_states)
                 unite_transitions(states_to_unite[-1], transition_table, curr_name + 1) # просто вперед
             print('состояния для объединения: ', states_to_unite)
             print('стартовые состояния: ', initial_states)
