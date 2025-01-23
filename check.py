@@ -185,12 +185,27 @@ def nka_to_dka(ordered_symbols, nfa_table, epsilon_closures):
 
 def write_to_file_dfa(filename, symbols, dfa_table, ordered_states):
     with open(filename, "w") as file:
-        file.write(";" + ";".join(ordered_states) + "\n")
+
+        file.write(";")
+        for state in ordered_states:
+            if "(end)" in state:
+                file.write("1;")
+            else:
+                file.write("0;")
+        file.write("\n")
+
+        file.write(";")
+        file.write(";".join(ordered_states))
+        file.write("\n")
 
         for symbol in symbols:
             file.write(f"{symbol}")
             for state in ordered_states:
-                file.write(f";{dfa_table[state][symbol]}")
+                transition = dfa_table[state][symbol]
+                if transition == "-":
+                    file.write(";-")
+                else:
+                    file.write(f";{transition}")
             file.write("\n")
 
 

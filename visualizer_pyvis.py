@@ -8,8 +8,8 @@ def read_file(file_path):
 
     # Удаляем пустые строки и разделяем строки по табуляции
     lines = [line.strip().replace(' ', '').replace('\t', '') for line in lines if line.strip()]
-    header = lines[0][1:].split(';')
-    transitions = lines[1:]
+    header = lines[1][1:].split(';')
+    transitions = lines[2:]
 
     return header, transitions
 
