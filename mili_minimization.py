@@ -328,15 +328,16 @@ def make_moore_dataframe_and_graph(new_grouped_indices, transitions, rows_names,
         for group_transition_id, group_transition in enumerate(states):
             row = []
             for transition in group_transition:
-                if transition == '-': 
+                if transition == '-':
                     row.append('-')
                 else:
                     row.append(f'q{transition}')
             rows.append(row)
-
+    print('rows', rows)
     for id, group in enumerate(rows):
         for j, elem in enumerate(group):
-            dot.edge(col_arr[id], elem, label = f'{rows_names[j]}')
+            if elem != '-':
+                dot.edge(col_arr[id], elem, label = f'{rows_names[j]}')
     transposed_rows = list(zip(*rows))
     transposed_rows = [list(col) for col in transposed_rows]
     print(transposed_rows)
