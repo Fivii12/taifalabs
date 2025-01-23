@@ -50,27 +50,29 @@ token_regex = [
     (r'\b(?i:float)\b', 'FLOAT'),
     (r'\b(?i:integer)\b', 'INTEGER'),
     (r'\b(?i:boolean)\b', 'BOOLEAN'),
+
     # комментарии
     (r'//.*', 'LINE_COMMENT'),
     (r'\{[^}]*\}', 'BLOCK_COMMENT'),
+
     # литералы идентификаторы
 
     # Некорректные строки (содержащие кириллицу)
-    (r'\b(?:\d+\.)+\d+\.(?:[a-df-zA-DF-Zа-яА-Я]+|[a-df-zA-DF-Zа-яА-Я]+.*)\b', 'BAD'), #
+    (r'\b(?:\d+\.)+\d+\.(?:[a-df-zA-DF-Zа-яА-Я]+|[a-df-zA-DF-Zа-яА-Я]+.*)\b', 'BAD'), # 1.2.3.abc
     (r'\d+[a-zA-Zа-яА-Я]+\d{2,}', 'BAD'),  # "123ff33334bfrf"
     (r'\b\d+[a-zA-Z_]+[a-zA-Z0-9_]*\b', 'BAD'),  # "123a123"
 
     (R"([^\s,.:;(){}\[\]\+\-\*/:=<>]*[а-яА-Я]+[^\s,.:;(){}\[\]\+\-\*/:=<>]*)", "BAD"), # RUSSIAN
 
-    (r'\b[a-zA-Z_][a-zA-Z0-9_]{256,}\b', 'BAD'),
+    (r'\b[a-zA-Z_][a-zA-Z0-9_]{256,}\b', 'BAD'), # identifier > 256 chars
 
     (r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', 'IDENTIFIER'),
     (r"'[^']*'", 'STRING'),
 
-    (r'\d+\.\d+([eE][+-]?\d{3,})', 'BAD'),
-    (r'\.\d+([eE][+-]?(\d{3,}))', 'BAD'),
-    (r'\d+[eE][+-]?\d{3,}', 'BAD'),
-    (r'\d+(?:\.\d+){2,}', 'BAD'),
+    (r'\d+\.\d+([eE][+-]?\d{3,})', 'BAD'),# длина > 3
+    (r'\.\d+([eE][+-]?(\d{3,}))', 'BAD'), # длина > 3
+    (r'\d+[eE][+-]?\d{3,}', 'BAD'), # длина > 3
+    (r'\d+(?:\.\d+){2,}', 'BAD'), # длина > 2
 
     (r'\d+\.\d+([eE][+-]?\d+)?', 'FLOAT'),
     (r'\.\d+([eE][+-]?(\d))?', 'FLOAT'),  # числа, начинающиеся с точки
@@ -101,9 +103,11 @@ token_regex = [
     (r'=', 'EQ'),
     (r'>', 'GREATER'),
     (r'<', 'LESS'),
+
     # пробелы и конец строки
     (r'[ \t]+', None),
     (r'\n', None),
+
     # некорректные символы
     (r'\{[^}]*', 'BAD'),
     (r"\'[^']*", 'BAD'),
@@ -141,8 +145,8 @@ class PascalLexer:
             if match:
                 lexeme = match.group(0)
                 print(regex, lexeme)
-                if token_type is None:
 
+                if token_type is None:
                     if '\n' in lexeme:
                         self.current_line += lexeme.count('\n')
                         self.current_column = 1
@@ -150,12 +154,13 @@ class PascalLexer:
                         self.current_column += len(lexeme)
                     self.position += len(lexeme)
                     return self.next_token()
+
                 token = Token(token_type, lexeme, self.current_line, self.current_column)
                 self.position += len(lexeme)
                 self.current_column += len(lexeme)
                 print(token)
+
                 if token_type == 'BLOCK_COMMENT':
-                    # Подсчет количества новых строк в комментарии
                     newline_count = lexeme.count('\n')
                     self.current_line += newline_count
 
