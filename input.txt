@@ -1,1 +1,1 @@
-ab*((a|b*)df(b|a*))+
+cac*(ba)* | (ca)*cb*|a*|b*
