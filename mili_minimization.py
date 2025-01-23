@@ -260,6 +260,7 @@ def initmoore(array, col_len,rows_len):
 
     return transitions_grouped
 
+
 def get_transition_moore(arr):
     numbers = '1234567890'
     transition = ''
@@ -267,31 +268,34 @@ def get_transition_moore(arr):
     for i in range(len(arr)):
         for j in range(len(arr[i])):
             transition = arr[i][j]
-            if transition[0] in numbers:
+            if transition == '-':
+                array.append('-')
+            elif transition[0] in numbers:
                 array.append(transition)
             else:
-                array.append(transition[1:]) # подумать если есть s или нет как исправить
-
+                array.append(transition[1:])
     return array
 
-def make_group_transitions_moore(groups, transtions_grouped, start_number):
-    final_aray = []
-    for i in range(len(groups)): # по объединенным по y
-        second_aray = []
-        for j, state in enumerate(groups[i]): # по индексу(состоянию)
-            aray = []
-            for elem in transtions_grouped[state]: # по переходу
-
-                a = get_group_for_state(int(elem) - start_number, groups)
-                aray.append(a)
-            second_aray.append(aray)
-        final_aray.append(second_aray)
-    return final_aray
+def make_group_transitions_moore(groups, transitions_grouped, start_number):
+    final_array = []
+    for i in range(len(groups)):  # по объединенным по y
+        second_array = []
+        for j, state in enumerate(groups[i]):  # по индексу (состоянию)
+            array = []
+            for elem in transitions_grouped[state]:  # по переходу
+                if elem == '-':  # Обрабатываем '-' как отсутствие перехода
+                    array.append('-')
+                else:
+                    a = get_group_for_state(int(elem) - start_number, groups)
+                    array.append(a)
+            second_array.append(array)
+        final_array.append(second_array)
+    return final_array
 
 
 def make_moore_dataframe_and_graph(new_grouped_indices, transitions, rows_names, yarray):
     # Создаем список для хранения строк
-    dot = Digraph(comment='Final State Machine')
+    dot = Digraph(comment='final')
 
     rows = []
     col_arr = []
@@ -324,8 +328,12 @@ def make_moore_dataframe_and_graph(new_grouped_indices, transitions, rows_names,
         for group_transition_id, group_transition in enumerate(states):
             row = []
             for transition in group_transition:
-                row.append(f'q{transition}')
+                if transition == '-':  # Обрабатываем '-' как отсутствие перехода
+                    row.append('-')
+                else:
+                    row.append(f'q{transition}')
             rows.append(row)
+
     for id, group in enumerate(rows):
         for j, elem in enumerate(group):
             dot.edge(col_arr[id], elem, label = f'{rows_names[j]}')
@@ -381,5 +389,5 @@ def moore_minimization():
     moore_df = make_moore_dataframe_and_graph(new_grouped_indices, mid_array, rows_names, ygreks)
     print(moore_df)
     moore_df.to_csv('moore_output.csv', sep=';')
-mili_minimization()
+#mili_minimization()
 moore_minimization()
