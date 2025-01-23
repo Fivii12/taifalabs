@@ -15,7 +15,7 @@ def read_regex_from_file(filename):
     return regex
 
 
-def finalize_transitions(states_to_unite, transition_table, final_state):
+def unite_transitions(states_to_unite, transition_table, final_state):
     for state in states_to_unite:
         transition_table[state][void_transition].add(final_state)
         print(f"{state} -- {void_transition} --> {final_state}")
@@ -47,50 +47,52 @@ def regular_expression_to_nka(regex):
     states_to_unite = [[]]
 
     for i, char in enumerate(regex):
+
         print(f'\nшаг: {i} символ: {char} вершина: {curr_name}')
         if char.isalnum():
             symbols.add(char)
 
             if i + 1 < len(regex) and regex[i + 1] == '*':
-                add_transition(transition_table, start_flag, initial_states[-1], curr_name, void_transition, curr_name + 1)
-                add_transition(transition_table, start_flag, initial_states[-1], curr_name + 1, char, curr_name + 1)
+                add_transition(transition_table, start_flag, initial_states[-1], curr_name, void_transition, curr_name + 1) # если звезда то по пустому в некст
+                add_transition(transition_table, start_flag, initial_states[-1], curr_name + 1, char, curr_name + 1) # и из некст в себя по символу
             elif i + 1 < len(regex) and regex[i + 1] == '+':
-                add_transition(transition_table, start_flag, initial_states[-1], curr_name, char, curr_name + 1)
-                add_transition(transition_table, start_flag, initial_states[-1], curr_name + 1, char, curr_name + 1)
+                add_transition(transition_table, start_flag, initial_states[-1], curr_name, char, curr_name + 1) # если плюс то по символу этому в некст
+                add_transition(transition_table, start_flag, initial_states[-1], curr_name + 1, char, curr_name + 1) # и из некст в себя по символу
             else:
-                add_transition(transition_table, start_flag, initial_states[-1], curr_name, char, curr_name + 1)
+                add_transition(transition_table, start_flag, initial_states[-1], curr_name, char, curr_name + 1) # просто переход из нынешнего в следующее состояние
             curr_name += 1
         elif char == '|':
             states_to_unite[-1].append(curr_name) # добавляем состояние для объединения
             start_flag[0] = True
-            print('состояния для объединения: ', states_to_unite)
+
         elif char == '(':
             states_to_unite.append([])
             add_transition(transition_table, start_flag, initial_states[-1], curr_name, void_transition, curr_name + 1) # делаем переход в пустую с которой начнем скобку
-            initial_states.append(curr_name + 1)
+            initial_states.append(curr_name + 1) # само начало
             curr_name += 1
-            print('состояния для объединения: ', states_to_unite)
-            print('начало скобок(последнее- последняя скобка): ', initial_states)
+            print('начало скобок(последнее число - последняя скобка): ', initial_states)
         elif char == ')':
             states_to_unite[-1].append(curr_name)
-            print('состояния для объединения: ', states_to_unite)
+
             if i + 1 < len(regex) and regex[i + 1] == '*':
-                finalize_transitions(states_to_unite[-1], transition_table, initial_states[-1]) # обратно на начальную для скобки вершину
+                unite_transitions(states_to_unite[-1], transition_table, initial_states[-1]) # обратно на начальную для скобки вершину
                 transition_table[initial_states[-1]][void_transition].add(curr_name + 1)# из назад вперед
                 print(f"{initial_states[-1]} -- {void_transition} --> {curr_name + 1}")
             elif i + 1 < len(regex) and regex[i + 1] == '+':
-                finalize_transitions(states_to_unite[-1], transition_table, curr_name + 1) # вперед
+                unite_transitions(states_to_unite[-1], transition_table, curr_name + 1) # вперед
                 transition_table[curr_name + 1][void_transition].add(initial_states[-1]) # из вперед - назад перед скобкой
                 print(f"{curr_name + 1} -- {void_transition} --> {initial_states[-1]}")
             else:
-                finalize_transitions(states_to_unite[-1], transition_table, curr_name + 1) # просто вперед
-
+                unite_transitions(states_to_unite[-1], transition_table, curr_name + 1) # просто вперед
+            print('состояния для объединения: ', states_to_unite)
+            print('стартовые состояния: ', initial_states)
             curr_name += 1
             initial_states.pop()
             states_to_unite.pop()
 
+
     states_to_unite[-1].append(curr_name)
-    finalize_transitions(states_to_unite[-1], transition_table, end_state_name)
+    unite_transitions(states_to_unite[-1], transition_table, end_state_name)
 
     if '@' in symbols:
         symbols.discard('@')
