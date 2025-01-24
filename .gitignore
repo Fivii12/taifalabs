@@ -10,3 +10,4 @@ moore_graph.png
 moore_output.csv
 moore_input.csv
 graph.png
+*.csv
